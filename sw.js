@@ -1,5 +1,5 @@
 // Service worker для офлайн-роботи тесту «НСД і НСК»
-const CACHE = "nsd-nsk-v1";
+const CACHE = "nsd-nsk-v2";
 const ASSETS = [
   "./",
   "./index.html",

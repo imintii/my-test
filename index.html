@@ -101,13 +101,19 @@
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <h1>🧮 Математика · 7 клас</h1>
-      <p>Тест на тему «НСД і НСК»</p>
+    <header style="background:linear-gradient(135deg,#3b6fe0,#6a9bff);border-radius:18px;padding:18px 16px;box-shadow:0 10px 30px rgba(59,111,224,.25)">
+      <h1 style="color:#fff">🧮 Математика · 7 клас</h1>
+      <p style="color:#eaf1ff">Тест на тему «НСД і НСК»</p>
+      <div style="display:inline-block;margin-top:10px;background:rgba(255,255,255,.22);color:#fff;font-weight:700;font-size:.85rem;padding:5px 14px;border-radius:999px">🆕 Оновлена версія 2</div>
     </header>
 
-    <!-- Кнопка встановлення PWA (з'являється, коли браузер пропонує встановлення) -->
-    <button id="installBtn" style="display:none;appearance:none;border:none;cursor:pointer;background:#3b6fe0;color:#fff;font-weight:700;font-size:1rem;padding:12px 18px;border-radius:14px;width:100%;margin-bottom:14px;box-shadow:0 8px 20px rgba(59,111,224,.3)">⬇️ Встановити застосунок на телефон</button>
+    <!-- Кнопка встановлення PWA (видима завжди; з підказкою, якщо браузер ще не готовий) -->
+    <button id="installBtn" style="appearance:none;border:none;cursor:pointer;background:#3b6fe0;color:#fff;font-weight:700;font-size:1rem;padding:12px 18px;border-radius:14px;width:100%;margin-bottom:10px;box-shadow:0 8px 20px rgba(59,111,224,.3)">⬇️ Встановити застосунок</button>
+    <div id="installHelp" style="display:none;background:#fff8e9;border:1px solid #efdfb8;border-radius:12px;padding:12px 14px;font-size:.92rem;color:#6b5a2e;line-height:1.55;margin-bottom:14px">
+      <b>Як встановити:</b><br>
+      💻 На комп'ютері (Chrome / Edge): натисніть значок ⊕ у рядку адреси, або меню ⋮ → «Встановити застосунок».<br>
+      📱 На телефоні: меню ⋮ (на iPhone — кнопка «Поділитися») → «Додати на головний екран».
+    </div>
 
     <!-- Екран із запитаннями -->
     <section id="quizCard" class="card">
@@ -294,29 +300,43 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// Кнопка «Встановити»
+// Кнопка «Встановити» — видима завжди
 let deferredPrompt = null;
 const installBtn = document.getElementById("installBtn");
+const installHelp = document.getElementById("installHelp");
 
+// Якщо застосунок уже запущено як встановлений — кнопка не потрібна
+if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
+  if (installBtn) installBtn.style.display = "none";
+}
+
+// Браузер повідомив, що готовий запропонувати встановлення
 window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();          // не показуємо стандартну підказку
+  e.preventDefault();
   deferredPrompt = e;
-  if (installBtn) installBtn.style.display = "block";
+  if (installHelp) installHelp.style.display = "none";
 });
 
 if (installBtn) {
   installBtn.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    installBtn.style.display = "none";
+    if (deferredPrompt) {
+      // браузер готовий — показуємо системне вікно встановлення
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    } else {
+      // сигналу ще немає — показуємо/ховаємо підказку, як встановити вручну
+      if (installHelp) {
+        installHelp.style.display = (installHelp.style.display === "none") ? "block" : "none";
+      }
+    }
   });
 }
 
-// Після встановлення ховаємо кнопку
+// Після встановлення ховаємо кнопку й підказку
 window.addEventListener("appinstalled", () => {
   if (installBtn) installBtn.style.display = "none";
+  if (installHelp) installHelp.style.display = "none";
 });
 </script>
 </body>
