@@ -1,0 +1,16 @@
+{
+  "name": "Тест НСД і НСК",
+  "short_name": "НСД·НСК",
+  "description": "Навчальний тест з математики для 7 класу на тему «НСД і НСК».",
+  "lang": "uk",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef4ff",
+  "theme_color": "#3b6fe0",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

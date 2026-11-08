@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тест: НСД і НСК (7 клас)</title>
+<!-- PWA -->
+<meta name="theme-color" content="#3b6fe0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --bg:#eef4ff;
+    --card:#ffffff;
+    --ink:#1f2a44;
+    --muted:#6b7794;
+    --brand:#3b6fe0;
+    --brand-dark:#2a53b0;
+    --ok:#2e9e5b;
+    --ok-bg:#e4f7ec;
+    --bad:#d8453f;
+    --bad-bg:#fdeaea;
+    --line:#dfe6f3;
+    --shadow:0 10px 30px rgba(38,61,120,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    background:linear-gradient(180deg,#eef4ff 0%,#f7faff 100%);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:16px;
+  }
+  .wrap{width:100%;max-width:620px;margin-top:18px}
+  header{text-align:center;margin-bottom:14px}
+  header h1{font-size:1.35rem;margin:0 0 4px}
+  header p{margin:0;color:var(--muted);font-size:.95rem}
+  .card{
+    background:var(--card);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:20px;
+  }
+
+  /* Смуга прогресу */
+  .progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:.9rem;color:var(--muted)}
+  .bar{height:12px;background:#e7edf9;border-radius:999px;overflow:hidden}
+  .bar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,#4f86ff,#3b6fe0);border-radius:999px;transition:width .35s ease}
+
+  .q{font-size:1.2rem;font-weight:700;margin:18px 2px 16px;line-height:1.4}
+
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt{
+    display:flex;align-items:center;gap:12px;
+    width:100%;text-align:left;
+    background:#f6f9ff;border:2px solid var(--line);
+    border-radius:14px;padding:14px 16px;
+    font-size:1.05rem;color:var(--ink);cursor:pointer;
+    transition:border-color .15s, background .15s, transform .05s;
+  }
+  .opt:hover{border-color:#b9ccf3}
+  .opt:active{transform:scale(.99)}
+  .opt .mark{
+    flex:0 0 28px;height:28px;width:28px;border-radius:50%;
+    background:#e2ebfb;color:var(--brand-dark);font-weight:700;
+    display:flex;align-items:center;justify-content:center;font-size:.95rem;
+  }
+  .opt.correct{background:var(--ok-bg);border-color:var(--ok);color:#1c6c3d}
+  .opt.correct .mark{background:var(--ok);color:#fff}
+  .opt.wrong{background:var(--bad-bg);border-color:var(--bad);color:#9c2b27}
+  .opt.wrong .mark{background:var(--bad);color:#fff}
+  .opt:disabled{cursor:default}
+
+  .feedback{min-height:24px;margin:14px 2px 0;font-weight:600}
+  .feedback.ok{color:var(--ok)}
+  .feedback.bad{color:var(--bad)}
+
+  .btn{
+    appearance:none;border:none;cursor:pointer;
+    background:var(--brand);color:#fff;font-weight:700;font-size:1.05rem;
+    padding:14px 20px;border-radius:14px;width:100%;margin-top:16px;
+    transition:background .15s, transform .05s;
+  }
+  .btn:hover{background:var(--brand-dark)}
+  .btn:active{transform:scale(.99)}
+  .btn[disabled]{opacity:.5;cursor:default}
+
+  /* Екран результату */
+  .result{text-align:center;padding:8px 4px}
+  .score{font-size:2.6rem;font-weight:800;color:var(--brand-dark);margin:6px 0}
+  .result .emoji{font-size:3rem}
+  .comment{font-size:1.1rem;color:var(--ink);margin:10px 0 4px}
+  .hint{color:var(--muted);font-size:.95rem;margin-bottom:6px}
+
+  .hidden{display:none}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🧮 Математика · 7 клас</h1>
+      <p>Тест на тему «НСД і НСК»</p>
+    </header>
+
+    <!-- Кнопка встановлення PWA (з'являється, коли браузер пропонує встановлення) -->
+    <button id="installBtn" style="display:none;appearance:none;border:none;cursor:pointer;background:#3b6fe0;color:#fff;font-weight:700;font-size:1rem;padding:12px 18px;border-radius:14px;width:100%;margin-bottom:14px;box-shadow:0 8px 20px rgba(59,111,224,.3)">⬇️ Встановити застосунок на телефон</button>
+
+    <!-- Екран із запитаннями -->
+    <section id="quizCard" class="card">
+      <div class="progress-top">
+        <span id="counter">Запитання 1 з 10</span>
+        <span id="percent">0%</span>
+      </div>
+      <div class="bar"><span id="barFill"></span></div>
+
+      <div id="question" class="q"></div>
+      <div id="options" class="options"></div>
+      <div id="feedback" class="feedback"></div>
+      <button id="nextBtn" class="btn" disabled>Далі →</button>
+    </section>
+
+    <!-- Екран результату -->
+    <section id="resultCard" class="card hidden">
+      <div class="result">
+        <div id="resEmoji" class="emoji">🎉</div>
+        <div class="score" id="scoreLine">0 з 10</div>
+        <div class="comment" id="comment"></div>
+        <div class="hint">Натисни кнопку, щоб пройти тест ще раз — запитання перемішаються.</div>
+        <button id="retryBtn" class="btn">🔄 Спробувати ще раз</button>
+      </div>
+    </section>
+  </div>
+
+<script>
+// ===== Банк запитань (правильна відповідь — перша у масиві, потім перемішуємо) =====
+const QUESTIONS = [
+  { q:"Що означає скорочення НСД?",
+    a:["Найбільший спільний дільник","Найменше спільне кратне","Найбільше спільне кратне","Найменший спільний дільник"] },
+  { q:"Що означає скорочення НСК?",
+    a:["Найменше спільне кратне","Найбільший спільний дільник","Найменший спільний дільник","Найбільше спільне кратне"] },
+  { q:"Знайди НСД(12, 18).",
+    a:["6","3","36","2"] },
+  { q:"Знайди НСК(4, 6).",
+    a:["12","24","2","10"] },
+  { q:"Чому дорівнює НСД(8, 12)?",
+    a:["4","2","24","8"] },
+  { q:"Чому дорівнює НСК(3, 5)?",
+    a:["15","8","1","30"] },
+  { q:"Числа 7 і 9 — взаємно прості. Чому дорівнює їх НСД?",
+    a:["1","7","63","9"] },
+  { q:"Для взаємно простих чисел a і b значення НСК(a, b) дорівнює…",
+    a:["добутку a · b","сумі a + b","1","більшому з чисел"] },
+  { q:"Знайди НСД(15, 25).",
+    a:["5","3","75","10"] },
+  { q:"Знайди НСК(6, 8).",
+    a:["24","48","2","14"] },
+];
+
+const LETTERS = ["А","Б","В","Г"];
+
+let order = [];        // перемішаний порядок запитань
+let current = 0;       // індекс поточного запитання
+let score = 0;         // кількість правильних
+let answered = false;  // чи вже відповіли на поточне
+
+const quizCard = document.getElementById("quizCard");
+const resultCard = document.getElementById("resultCard");
+const counterEl = document.getElementById("counter");
+const percentEl = document.getElementById("percent");
+const barFill = document.getElementById("barFill");
+const questionEl = document.getElementById("question");
+const optionsEl = document.getElementById("options");
+const feedbackEl = document.getElementById("feedback");
+const nextBtn = document.getElementById("nextBtn");
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(){
+  order = shuffle(QUESTIONS.map((_,i)=>i));
+  current = 0;
+  score = 0;
+  resultCard.classList.add("hidden");
+  quizCard.classList.remove("hidden");
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered = false;
+  const item = QUESTIONS[order[current]];
+  const total = QUESTIONS.length;
+
+  // прогрес
+  counterEl.textContent = `Запитання ${current+1} з ${total}`;
+  const pct = Math.round((current/total)*100);
+  percentEl.textContent = pct + "%";
+  barFill.style.width = pct + "%";
+
+  questionEl.textContent = item.q;
+  feedbackEl.textContent = "";
+  feedbackEl.className = "feedback";
+  nextBtn.disabled = true;
+  nextBtn.textContent = (current === total-1) ? "Показати результат" : "Далі →";
+
+  // перемішуємо варіанти; правильна відповідь — item.a[0]
+  const correctText = item.a[0];
+  const opts = shuffle(item.a);
+
+  optionsEl.innerHTML = "";
+  opts.forEach((text, idx)=>{
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.innerHTML = `<span class="mark">${LETTERS[idx]}</span><span>${text}</span>`;
+    btn.addEventListener("click", ()=> chooseAnswer(btn, text, correctText, opts));
+    optionsEl.appendChild(btn);
+  });
+}
+
+function chooseAnswer(btn, chosen, correctText, opts){
+  if(answered) return;
+  answered = true;
+
+  const allBtns = optionsEl.querySelectorAll(".opt");
+  allBtns.forEach((b,i)=>{
+    b.disabled = true;
+    if(opts[i] === correctText) b.classList.add("correct");
+  });
+
+  if(chosen === correctText){
+    score++;
+    feedbackEl.textContent = "✅ Правильно! Молодець.";
+    feedbackEl.className = "feedback ok";
+  } else {
+    btn.classList.add("wrong");
+    feedbackEl.textContent = `❌ Не вгадав(ла). Правильна відповідь: ${correctText}.`;
+    feedbackEl.className = "feedback bad";
+  }
+  nextBtn.disabled = false;
+}
+
+function next(){
+  if(!answered) return;
+  if(current < QUESTIONS.length - 1){
+    current++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult(){
+  const total = QUESTIONS.length;
+  barFill.style.width = "100%";
+  quizCard.classList.add("hidden");
+  resultCard.classList.remove("hidden");
+
+  document.getElementById("scoreLine").textContent = `${score} з ${total}`;
+
+  let emoji, comment;
+  if(score === total){ emoji="🌟"; comment="Чудово! Ти відмінно знаєш НСД і НСК!"; }
+  else if(score >= 8){ emoji="😃"; comment="Дуже добре! Ще трішки — і буде ідеально."; }
+  else if(score >= 5){ emoji="💪"; comment="Непогано! Повтори тему і спробуй ще раз."; }
+  else { emoji="📚"; comment="Не засмучуйся — трохи потренуйся, і все вийде!"; }
+
+  document.getElementById("resEmoji").textContent = emoji;
+  document.getElementById("comment").textContent = comment;
+}
+
+nextBtn.addEventListener("click", next);
+document.getElementById("retryBtn").addEventListener("click", startQuiz);
+
+// запуск
+startQuiz();
+</script>
+
+<!-- ===== PWA: офлайн + встановлення ===== -->
+<script>
+// Реєструємо service worker (працює лише через https або localhost)
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch((err) => {
+      console.log("Service worker не зареєстровано:", err);
+    });
+  });
+}
+
+// Кнопка «Встановити»
+let deferredPrompt = null;
+const installBtn = document.getElementById("installBtn");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();          // не показуємо стандартну підказку
+  deferredPrompt = e;
+  if (installBtn) installBtn.style.display = "block";
+});
+
+if (installBtn) {
+  installBtn.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.style.display = "none";
+  });
+}
+
+// Після встановлення ховаємо кнопку
+window.addEventListener("appinstalled", () => {
+  if (installBtn) installBtn.style.display = "none";
+});
+</script>
+</body>
+</html>
